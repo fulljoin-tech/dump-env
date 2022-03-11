@@ -23,7 +23,7 @@ jobs:
     env:
       RUST_BACKTRACE: full
       BUILD_ARTIFACT_PATH: /home/runner/work/dump-env/dump-env/target/x86_64-unknown-linux-gnu/release/dump-env
-      ARCHIVE_PATH: ./dump-env_${{ matrix.target }}.tar.gz
+      ARCHIVE_PATH: /home/runner/work/dump-env/dump-env_${{ matrix.target }}.tar.gz
       RUSTV: ${{ matrix.rust }}
     steps:
       - uses: actions/checkout@v2
