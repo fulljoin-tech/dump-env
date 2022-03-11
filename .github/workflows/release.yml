@@ -46,7 +46,7 @@ jobs:
       - name: test
         run: make build-all-tests && make run-all-tests
       - name: build release
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --message-format json
       - name: archive
         run: tar -czvf $ARCHIVE_PATH $BUILD_ARTIFACT_PATH
       - name: release
