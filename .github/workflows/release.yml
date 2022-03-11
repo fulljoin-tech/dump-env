@@ -22,7 +22,7 @@ jobs:
             os: ubuntu-latest
     env:
       RUST_BACKTRACE: full
-      BUILD_ARTIFACT_DIR: /home/runner/work/dump-env/dump-env/target/x86_64-unknown-linux-gnu/release/
+      BUILD_ARTIFACT_DIR: /home/runner/work/dump-env/dump-env/target/x86_64-unknown-linux-gnu/release
       BUILD_ARTIFACT_NAME: dump-env
       ARCHIVE_NAME: dump-env_${{ matrix.target }}.tar.gz
       RUSTV: ${{ matrix.rust }}
