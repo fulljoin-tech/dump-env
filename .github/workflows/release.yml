@@ -23,7 +23,6 @@ jobs:
     env:
       RUST_BACKTRACE: full
       BUILD_ARTIFACT_NAME: dump-env
-      ARCHIVE_DIR: $GITHUB_WORKSPACE
       ARCHIVE_NAME: dump-env_${{ matrix.target }}.tar.gz
       RUSTV: ${{ matrix.rust }}
     steps:
