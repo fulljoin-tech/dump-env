@@ -22,8 +22,9 @@ jobs:
             os: ubuntu-latest
     env:
       RUST_BACKTRACE: full
-      BUILD_ARTIFACT_DIR: /home/runner/work/dump-env/dump-env/target/x86_64-unknown-linux-gnu/release
+      BUILD_ARTIFACT_DIR: ${{ env.GITHUB_WORKSPACE }}/target/x86_64-unknown-linux-gnu/release
       BUILD_ARTIFACT_NAME: dump-env
+      ARCHIVE_DIR: ${{ env.GITHUB_WORKSPACE }}
       ARCHIVE_NAME: dump-env_${{ matrix.target }}.tar.gz
       RUSTV: ${{ matrix.rust }}
     steps:
@@ -52,11 +53,11 @@ jobs:
       - name: build release
         run: cargo build --release --target ${{ matrix.target }} --message-format json
       - name: archive
-        run: tar -C $BUILD_ARTIFACT_DIR -czvf $ARCHIVE_NAME $BUILD_ARTIFACT_NAME
+        run: tar -C $BUILD_ARTIFACT_DIR -czvf "${{ env.ARCHIVE_DIR }}/${{ env.ARCHIVE_NAME }}" "${{ env.BUILD_ARTIFACT_NAME }}"
       - name: release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            ${{ env.BUILD_ARTIFACT_DIR }}/${{ env.ARCHIVE_NAME  }}
+            ${{ env.ARCHIVE_DIR }}/${{ env.ARCHIVE_NAME  }}
      
