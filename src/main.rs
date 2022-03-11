@@ -1,3 +1,13 @@
+//! # dump-env
+//!
+//! Environment variable utility tool that prints environment variables.
+//! When combined with a template it merges the template and existing environment variables and
+//! prints the result.
+//!
+//! ## Why
+//!
+//! This tool is helpful in CI pipelines where you can store environment vars as part of the pipeline.
+
 use std::env;
 use std::ffi::OsString;
 use std::fs::File;
@@ -15,7 +25,7 @@ struct Args {
     source: Option<String>,
 
     #[clap(short, long)]
-    template: Option<String>
+    template: Option<String>,
 }
 
 #[derive(Debug, Error)]
@@ -101,7 +111,7 @@ fn parse_template(path: &Path) -> Result<EnvItems> {
         .filter(|x| !x.starts_with('#'))
         .filter_map(|line| {
             if let Some((left, right)) = line.split_once('=') {
-                Some((OsString::from(left), OsString::from(right)))
+                Some((OsString::from(left.trim()), OsString::from(right.trim())))
             } else {
                 None
             }
