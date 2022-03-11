@@ -19,7 +19,7 @@ jobs:
             os: ubuntu-latest
     env:
       RUST_BACKTRACE: full
-      BUILD_ARTIFACT_PATH: /home/runner/work/dump-env/dump-env
+      BUILD_ARTIFACT_PATH: /home/runner/work/dump-env/dump-env/target/release/dump-env
       ARCHIVE_PATH: /home/runner/work/dump-env/dump-env_${{ matrix.target }}.tar.gz
       RUSTV: ${{ matrix.rust }}
     steps:
