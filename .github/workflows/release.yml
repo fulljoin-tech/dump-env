@@ -22,13 +22,16 @@ jobs:
             os: ubuntu-latest
     env:
       RUST_BACKTRACE: full
-      BUILD_ARTIFACT_DIR: $GITHUB_WORKSPACE/target/x86_64-unknown-linux-gnu/release
       BUILD_ARTIFACT_NAME: dump-env
       ARCHIVE_DIR: $GITHUB_WORKSPACE
       ARCHIVE_NAME: dump-env_${{ matrix.target }}.tar.gz
       RUSTV: ${{ matrix.rust }}
     steps:
       - uses: actions/checkout@v2
+      - name: "Set environmental variables"
+        run: |
+          echo "BUILD_ARTIFACT_DIR=$GITHUB_WORKSPACE/target/x86_64-unknown-linux-gnu/release" >> $GITHUB_ENV
+          echo "ARCHIVE_DIR=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Install Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
         with:
