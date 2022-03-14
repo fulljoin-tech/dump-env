@@ -47,18 +47,18 @@ fn main() -> Result<()> {
 
     if let Some(source_path) = args.source {
         let path = PathBuf::from(&source_path);
-        print(strip_prefixes(&args.prefixes, left_join(parse_template(&path)?, get_env())));
+        print(left_join(parse_template(&path)?, get_env(&args.prefixes)));
         return Ok(());
     }
 
     if let Some(template_path) = args.template {
         let path = PathBuf::from(&template_path);
-        print(strip_prefixes(&args.prefixes, full_join(parse_template(&path)?, get_env())));
+        print(full_join(parse_template(&path)?, get_env(&args.prefixes)));
         return Ok(());
 
     }
 
-    print(strip_prefixes(&args.prefixes, get_env()));
+    print( get_env(&args.prefixes));
     Ok(())
 }
 
@@ -83,8 +83,8 @@ fn print(x: EnvItems) {
 }
 
 /// Get environment vars as list of OsString tuples.
-fn get_env() -> EnvItems {
-    env::vars_os().into_iter().map(|(k,v)| (k, v)).collect()
+fn get_env(prefixes: &[String]) -> EnvItems {
+    strip_prefixes(prefixes, env::vars_os().into_iter().map(|(k,v)| (k, v)).collect())
 }
 
 
