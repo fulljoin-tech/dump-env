@@ -1,12 +1,12 @@
 //! # dump-env
 //!
 //! Environment variable utility tool that prints environment variables.
-//! When combined with a template it merges the template and existing environment variables and
-//! prints the result.
+//! When provided with a template `dump-env` merges the template and existing environment variables.
 //!
 //! ## Why
 //!
-//! This tool is helpful in CI pipelines where you can store environment vars as part of the pipeline.
+//! This tool is helpful in CI pipelines where you can store environment vars as part of the pipeline
+//! and need a proper way to generate .env files.
 
 use std::env;
 use std::ffi::OsString;
@@ -20,12 +20,17 @@ use eyre::Result;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    /// Name of the person to greet
+    /// Source template file
     #[clap(short, long)]
     source: Option<String>,
 
+    /// Template file
     #[clap(short, long)]
     template: Option<String>,
+
+    /// Prefixes
+    #[clap(short, long)]
+    prefixes: Vec<String>
 }
 
 #[derive(Debug, Error)]
@@ -42,31 +47,49 @@ fn main() -> Result<()> {
 
     if let Some(source_path) = args.source {
         let path = PathBuf::from(&source_path);
-        print(left_join(parse_template(&path)?, get_env()));
+        print(strip_prefixes(&args.prefixes, left_join(parse_template(&path)?, get_env())));
         return Ok(());
     }
 
     if let Some(template_path) = args.template {
         let path = PathBuf::from(&template_path);
-        print(full_join(parse_template(&path)?, get_env()));
+        print(strip_prefixes(&args.prefixes, full_join(parse_template(&path)?, get_env())));
         return Ok(());
 
     }
 
-    print(get_env());
+    print(strip_prefixes(&args.prefixes, get_env()));
     Ok(())
 }
 
+fn strip_prefixes(prefixes: &[String], items: EnvItems) -> EnvItems {
+    items.into_iter().map(|(k,v)| {
+        let key_string = k.to_string_lossy().to_string();
+        for pfx in prefixes {
+            // Return after the first prefix hit.
+            if let Some(x) = key_string.strip_prefix(pfx.as_str()) {
+                return (x.into(), v);
+            }
+        }
+        (k, v)
+    }).collect()
+}
+
+/// Prints a list of EnvItem to stdout.
 fn print(x: EnvItems) {
     for (k, v) in x {
         println!("{}={}", k.to_string_lossy(), v.to_string_lossy());
     }
 }
 
+/// Get environment vars as list of OsString tuples.
 fn get_env() -> EnvItems {
     env::vars_os().into_iter().map(|(k,v)| (k, v)).collect()
 }
 
+
+/// `left` is the template, `right` are the environment vars.
+/// Include all that is in `left` and overwrite with `right`.
 fn left_join(left: EnvItems, right: EnvItems) -> EnvItems {
     left.into_iter().map(|(lk, lv)| {
         for (rk, rv) in &right {
@@ -79,6 +102,9 @@ fn left_join(left: EnvItems, right: EnvItems) -> EnvItems {
     }).collect()
 }
 
+/// `left` is the template, `right` are the environment vars.
+/// Include all that is in `left` , overwrite with `right` extends results with
+/// missing keys from `right`.
 fn full_join(left: EnvItems, right: EnvItems) -> EnvItems {
     let mut x = left_join(left, right.clone());
     for (rk, rv) in &right {
@@ -90,6 +116,7 @@ fn full_join(left: EnvItems, right: EnvItems) -> EnvItems {
     x
 }
 
+/// Has key helper.
 fn has_key(key: &OsString, xs: &[EnvItem]) -> bool {
     for (k, _v) in xs {
         if key == k {
@@ -99,6 +126,8 @@ fn has_key(key: &OsString, xs: &[EnvItem]) -> bool {
     false
 }
 
+/// Parse a .env template file
+/// This trims whitespace and skips lines that start with #.
 fn parse_template(path: &Path) -> Result<EnvItems> {
     if !path.exists() {
         return Err(Error::TemplateNotFound.into());
@@ -197,5 +226,15 @@ mod tests {
             assert_eq!(result, expect);
         }
 
+    }
+
+    #[test]
+    fn test_strip_prefixes() {
+        let prefixes = vec![String::from("test_"), String::from("test2_")];
+        let env = to_os_str(vec![("test_a", "10"), ("test2_b", "20"), ("test_test2_c", "30")]);
+        let expect = to_os_str(vec![("a", "10"), ("b", "20"), ("test2_c", "30")]);
+
+        let result = strip_prefixes(&prefixes, env);
+        assert_eq!(result, expect);
     }
 }
